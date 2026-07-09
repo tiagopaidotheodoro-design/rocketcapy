@@ -150,6 +150,17 @@
   .fineprint{font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:12px; opacity:0.75;}
   .claim-wrap{text-align:center; margin-top:34px;}
   .claim-wrap p{font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:10px;}
+  .claim-wrap p.err{color:#E6788A;}
+  .claim-fields{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:14px;}
+  .claim-fields input{
+    font-family:var(--mono); font-size:13px; color:var(--text); background:var(--panel);
+    border:1px solid var(--line); border-radius:9px; padding:12px 14px; min-width:230px;
+    outline:none; transition:border-color .12s ease;
+  }
+  .claim-fields input::placeholder{color:var(--dim);}
+  .claim-fields input:focus{border-color:var(--tan);}
+  .btn[disabled]{opacity:0.6; cursor:default;}
+  .btn[disabled]:hover{transform:none; box-shadow:none;}
 
   /* verify */
   .verify{background:var(--bg-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
@@ -301,10 +312,14 @@
     </div>
     <p class="fineprint">* rough example so you get the shape of it. real pool size + multipliers get locked in near launch once we see actual volume.</p>
 
-    <div class="claim-wrap">
-      <a href="https://forms.gle/REPLACE_WITH_YOUR_GOOGLE_FORM_ID" class="btn btn-primary" target="_blank" rel="noopener">Claim your spot →</a>
-      <p>drop your solana wallet + X handle. 30 seconds, that's it.</p>
-    </div>
+    <form class="claim-wrap" id="claimForm">
+      <div class="claim-fields">
+        <input type="text" id="claimWallet" placeholder="Solana wallet address" autocomplete="off" required>
+        <input type="text" id="claimHandle" placeholder="X handle (e.g. @yourname)" autocomplete="off" required>
+      </div>
+      <button type="submit" class="btn btn-primary" id="claimSubmit">Claim your spot →</button>
+      <p id="claimMsg">drop your solana wallet + X handle. 30 seconds, that's it.</p>
+    </form>
   </section>
 
   <!-- VERIFY -->
@@ -331,5 +346,66 @@
   </footer>
 
 </div>
+
+<script>
+(function(){
+  // TODO: crie um form grátis em https://formspree.io (2 min, sem cartão) e cole
+  // o endpoint dele aqui (formato "https://formspree.io/f/xxxxxxxx"). Enquanto
+  // esse placeholder estiver aqui, o formulário mostra erro em vez de enviar.
+  var FORM_ENDPOINT = "https://formspree.io/f/REPLACE_WITH_YOUR_FORMSPREE_ID";
+  var WALLET_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+  var form = document.getElementById('claimForm');
+  var msg = document.getElementById('claimMsg');
+  var btn = document.getElementById('claimSubmit');
+  var walletInput = document.getElementById('claimWallet');
+  var handleInput = document.getElementById('claimHandle');
+
+  function setMsg(text, isErr){
+    msg.textContent = text;
+    msg.classList.toggle('err', !!isErr);
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    if(FORM_ENDPOINT.indexOf('REPLACE_WITH') !== -1){
+      setMsg("form isn't wired up yet — check back soon.", true);
+      return;
+    }
+
+    var wallet = walletInput.value.trim();
+    var handle = handleInput.value.trim();
+
+    if(!WALLET_RE.test(wallet)){
+      setMsg("that doesn't look like a valid solana wallet address.", true);
+      return;
+    }
+    if(!handle){
+      setMsg("drop your X handle too.", true);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'sending...';
+    setMsg('sending…', false);
+
+    fetch(FORM_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: wallet, xHandle: handle })
+    }).then(function(res){
+      if(!res.ok) throw new Error('bad response');
+      form.reset();
+      btn.style.display = 'none';
+      setMsg("you're in. we'll check eligibility at snapshot time.", false);
+    }).catch(function(){
+      btn.disabled = false;
+      btn.textContent = 'Claim your spot →';
+      setMsg('something went wrong — try again in a sec.', true);
+    });
+  });
+})();
+</script>
 </body>
 </html>
