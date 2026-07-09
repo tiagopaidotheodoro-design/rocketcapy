@@ -1,1 +1,6 @@
 files.zip
+
+.vercel
+
+scripts/*.db
+__pycache__/
