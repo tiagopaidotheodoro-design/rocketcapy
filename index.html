@@ -349,10 +349,7 @@
 
 <script>
 (function(){
-  // TODO: crie um form grátis em https://formspree.io (2 min, sem cartão) e cole
-  // o endpoint dele aqui (formato "https://formspree.io/f/xxxxxxxx"). Enquanto
-  // esse placeholder estiver aqui, o formulário mostra erro em vez de enviar.
-  var FORM_ENDPOINT = "https://formspree.io/f/REPLACE_WITH_YOUR_FORMSPREE_ID";
+  var FORM_ENDPOINT = "/api/claim";
   var WALLET_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
   var form = document.getElementById('claimForm');
@@ -368,11 +365,6 @@
 
   form.addEventListener('submit', function(e){
     e.preventDefault();
-
-    if(FORM_ENDPOINT.indexOf('REPLACE_WITH') !== -1){
-      setMsg("form isn't wired up yet — check back soon.", true);
-      return;
-    }
 
     var wallet = walletInput.value.trim();
     var handle = handleInput.value.trim();
